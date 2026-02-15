@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react' //
 import { AnimatePresence, motion } from 'framer-motion'
 import { LEVELS, type LevelData } from './constants'
 import { TitleScreen } from './title-screen'
@@ -16,6 +16,27 @@ export function PlatformerGame() {
   const [levelIndex, setLevelIndex] = useState(0)
   const [customLevel, setCustomLevel] = useState<LevelData | null>(null)
   const [isPlayingCustom, setIsPlayingCustom] = useState(false)
+
+  // 1. Create a reference to hold the audio object
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+
+  // 2. Initialize the audio settings when the component first loads
+  useEffect(() => {
+    if (!audioRef.current) {
+      // Ensure your file is in the 'public' folder and named exactly 'bg-music.mp3'
+      audioRef.current = new Audio('/bg-music.mp3')
+      audioRef.current.loop = true
+      audioRef.current.volume = 0.3 // Set a comfortable background volume
+    }
+  }, [])
+
+  // 3. Create a function to start music on the first user interaction
+  const startMusicAndProceed = () => {
+    audioRef.current?.play().catch((err) => {
+      console.warn("Audio play blocked or failed:", err)
+    })
+    setScreen('levels')
+  }
 
   const handleSaveCustomLevel = async (level: LevelData) => {
     try {
@@ -47,10 +68,12 @@ export function PlatformerGame() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <TitleScreen onStart={() => setScreen('levels')} />
+            {/* 4. Use the new function here to unlock audio */}
+            <TitleScreen onStart={startMusicAndProceed} />
           </motion.div>
         )}
 
+        {/* ... rest of your components remain the same ... */}
         {screen === 'levels' && (
           <motion.div
             key="levels"
